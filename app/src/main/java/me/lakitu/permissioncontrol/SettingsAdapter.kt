@@ -3,19 +3,19 @@ package me.lakitu.permissioncontrol
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Switch
 import android.widget.TextView
+import androidx.appcompat.widget.SwitchCompat
 import androidx.recyclerview.widget.RecyclerView
 
 class SettingsAdapter(
     private val settings: List<SystemSettingsController.SettingItem>,
-    private val onToggle: (SystemSettingsController.SettingItem, Boolean) -> Unit
+    private val onToggle: (SystemSettingsController.SettingItem, Boolean) -> SystemSettingsController.SettingResult
 ) : RecyclerView.Adapter<SettingsAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val name: TextView = view.findViewById(R.id.tv_setting_name)
         val key: TextView = view.findViewById(R.id.tv_setting_key)
-        val switch: Switch = view.findViewById(R.id.switch_setting)
+        val switch: SwitchCompat = view.findViewById(R.id.switch_setting)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -32,7 +32,10 @@ class SettingsAdapter(
         holder.switch.isChecked = setting.getValue() as Boolean
 
         holder.switch.setOnCheckedChangeListener { _, isChecked ->
-            onToggle(setting, isChecked)
+            val result = onToggle(setting, isChecked)
+            if (result !is SystemSettingsController.SettingResult.Success) {
+                holder.switch.isChecked = !isChecked
+            }
         }
     }
 

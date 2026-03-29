@@ -2,9 +2,12 @@ package me.lakitu.permissioncontrol
 
 import android.content.ContentResolver
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.wifi.WifiManager
 import android.provider.Settings
 
-class SystemSettingsController(context: Context) {
+class SystemSettingsController(private val context: Context) {
 
     private val contentResolver: ContentResolver = context.contentResolver
 
@@ -36,17 +39,52 @@ class SystemSettingsController(context: Context) {
         }
     }
 
-    fun setWirelessDebuggingEnabled(enabled: Boolean): Boolean {
+    fun isWifiConnected(): Boolean {
         return try {
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val activeNetwork = connectivityManager.activeNetwork ?: return false
+            val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun isWifiEnabled(): Boolean {
+        return try {
+            val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            wifiManager.isWifiEnabled
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    sealed class WirelessDebuggingResult {
+        data class Success(val enabled: Boolean) : WirelessDebuggingResult()
+        data object WifiNotConnected : WirelessDebuggingResult()
+        data object WifiDisabled : WirelessDebuggingResult()
+        data class Error(val message: String) : WirelessDebuggingResult()
+    }
+
+    fun setWirelessDebuggingEnabled(enabled: Boolean): WirelessDebuggingResult {
+        return try {
+            if (enabled) {
+                if (!isWifiEnabled()) {
+                    return WirelessDebuggingResult.WifiDisabled
+                }
+                if (!isWifiConnected()) {
+                    return WirelessDebuggingResult.WifiNotConnected
+                }
+            }
             Settings.Global.putInt(
                 contentResolver,
                 "adb_wifi_enabled",
                 if (enabled) 1 else 0
             )
-            true
+            WirelessDebuggingResult.Success(enabled)
         } catch (e: Exception) {
             android.util.Log.e("SettingsController", "Failed to set adb_wifi_enabled", e)
-            false
+            WirelessDebuggingResult.Error(e.message ?: "Unknown error")
         }
     }
 
@@ -70,12 +108,19 @@ class SystemSettingsController(context: Context) {
         }
     }
 
+    sealed class SettingResult {
+        data class Success(val enabled: Boolean) : SettingResult()
+        data class Error(val message: String) : SettingResult()
+        data object WifiDisabled : SettingResult()
+        data object WifiNotConnected : SettingResult()
+    }
+
     data class SettingItem(
         val name: String,
         val key: String,
         val isBoolean: Boolean = true,
         val getValue: () -> Any?,
-        val setValue: (Boolean) -> Boolean
+        val setValue: (Boolean) -> SettingResult
     )
 
     fun getAllSettings(): List<SettingItem> {
@@ -84,21 +129,32 @@ class SystemSettingsController(context: Context) {
                 name = "USB调试",
                 key = "adb_enabled",
                 getValue = { isUsbDebuggingEnabled() },
-                setValue = { setUsbDebuggingEnabled(it) }
+                setValue = { 
+                    val result = setUsbDebuggingEnabled(it)
+                    if (result) SettingResult.Success(it) else SettingResult.Error("设置失败")
+                }
             ),
-             SettingItem(
-                 name = "无线调试",
-                 key = "adb_wifi_enabled",
-                 getValue = { isWirelessDebuggingEnabled() },
-                 setValue = { setWirelessDebuggingEnabled(it) }
-             ),
-
-
+            SettingItem(
+                name = "无线调试",
+                key = "adb_wifi_enabled",
+                getValue = { isWirelessDebuggingEnabled() },
+                setValue = { 
+                    when (val result = setWirelessDebuggingEnabled(it)) {
+                        is WirelessDebuggingResult.Success -> SettingResult.Success(result.enabled)
+                        is WirelessDebuggingResult.WifiDisabled -> SettingResult.WifiDisabled
+                        is WirelessDebuggingResult.WifiNotConnected -> SettingResult.WifiNotConnected
+                        is WirelessDebuggingResult.Error -> SettingResult.Error(result.message)
+                    }
+                }
+            ),
             SettingItem(
                 name = "开发者模式",
                 key = "development_settings_enabled",
                 getValue = { isDevelopmentSettingsEnabled() },
-                setValue = { setDevelopmentSettingsEnabled(it) }
+                setValue = { 
+                    val result = setDevelopmentSettingsEnabled(it)
+                    if (result) SettingResult.Success(it) else SettingResult.Error("设置失败")
+                }
             )
         )
     }

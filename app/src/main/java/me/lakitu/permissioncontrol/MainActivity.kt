@@ -104,11 +104,18 @@ class MainActivity : AppCompatActivity() {
         val settings = systemSettingsController.getAllSettings()
         val adapter = SettingsAdapter(settings) { setting, enable ->
             val result = setting.setValue(enable)
-            if (result) {
-                Toast.makeText(this, "${setting.name} 已${if (enable) "开启" else "关闭"}", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "${setting.name} 设置失败", Toast.LENGTH_SHORT).show()
+            val message = when (result) {
+                is SystemSettingsController.SettingResult.Success -> 
+                    "${setting.name} 已${if (result.enabled) "开启" else "关闭"}"
+                is SystemSettingsController.SettingResult.Error -> 
+                    "${setting.name} 设置失败: ${result.message}"
+                is SystemSettingsController.SettingResult.WifiDisabled -> 
+                    "请先开启WiFi"
+                is SystemSettingsController.SettingResult.WifiNotConnected -> 
+                    "请先连接WiFi网络"
             }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            result
         }
 
         recyclerView.layoutManager = LinearLayoutManager(this)
