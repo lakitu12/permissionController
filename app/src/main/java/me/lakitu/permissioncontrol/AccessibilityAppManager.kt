@@ -30,33 +30,40 @@ class AccessibilityAppManager(private val context: Context) {
 
     fun getAllAppsWithAccessibilityService(): List<AppInfo> {
         val enabledServices = getEnabledServicesSet()
-        val apps = mutableListOf<AppInfo>()
 
         val resolveInfos = pm.queryIntentServices(
             android.content.Intent("android.accessibilityservice.AccessibilityService"),
             PackageManager.GET_SERVICES
         )
 
+        val appServices = mutableMapOf<String, MutableList<String>>()
+
         for (resolveInfo in resolveInfos) {
             val serviceInfo = resolveInfo.serviceInfo ?: continue
             val packageName = serviceInfo.packageName
             val className = serviceInfo.name
             val flatName = "$packageName/$className"
-            
-            try {
-                val appInfo = pm.getApplicationInfo(packageName, 0)
-                apps.add(AppInfo(
-                    packageName = packageName,
-                    appName = pm.getApplicationLabel(appInfo).toString(),
-                    serviceName = flatName,
-                    icon = try { pm.getApplicationIcon(packageName) } catch (e: Exception) { null },
-                    isAccessibilityEnabled = enabledServices.contains(flatName)
-                ))
-            } catch (e: Exception) {
-            }
+
+            appServices.getOrPut(packageName) { mutableListOf() }.add(flatName)
         }
 
-        return apps.distinctBy { it.packageName }.sortedBy { it.appName }
+        return appServices.mapNotNull { (packageName, services) ->
+            try {
+                val appInfo = pm.getApplicationInfo(packageName, 0)
+                val isEnabled = enabledServices.any { enabled ->
+                    enabled.startsWith("$packageName/")
+                }
+                AppInfo(
+                    packageName = packageName,
+                    appName = pm.getApplicationLabel(appInfo).toString(),
+                    serviceName = services.first(),
+                    icon = try { pm.getApplicationIcon(packageName) } catch (e: Exception) { null },
+                    isAccessibilityEnabled = isEnabled
+                )
+            } catch (e: Exception) {
+                null
+            }
+        }.sortedBy { it.appName }
     }
 
     fun isAppAccessibilityEnabled(packageName: String): Boolean {
