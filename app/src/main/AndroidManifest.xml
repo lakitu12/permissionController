@@ -24,7 +24,7 @@
         android:theme="@style/Theme.PermissionControl">
 
         <activity
-            android:name=".MainActivity"
+            android:name="me.lakitu.permissioncontroller.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
