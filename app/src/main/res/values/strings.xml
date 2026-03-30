@@ -25,6 +25,7 @@
     <string name="enable_wifi_first">Please enable WiFi first</string>
     <string name="connect_wifi_first">Please connect to a WiFi network first</string>
     <string name="grant_permission_message">WRITE_SECURE_SETTINGS permission required.</string>
+    <string name="write_secure_settings_permission">WRITE_SECURE_SETTINGS</string>
     <string name="grant_permission_instruction">Please execute on your computer:</string>
     <string name="usb_debugging">USB Debugging</string>
     <string name="wireless_debugging">Wireless Debugging</string>
