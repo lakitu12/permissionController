@@ -24,4 +24,9 @@
     <string name="setting_failed">设置失败</string>
     <string name="enable_wifi_first">请先开启WiFi</string>
     <string name="connect_wifi_first">请先连接WiFi网络</string>
+    <string name="grant_permission_message">需要 WRITE_SECURE_SETTINGS 权限。</string>
+    <string name="grant_permission_instruction">请在电脑上执行：</string>
+    <string name="usb_debugging">USB调试</string>
+    <string name="wireless_debugging">无线调试</string>
+    <string name="developer_mode">开发者模式</string>
 </resources>
