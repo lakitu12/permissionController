@@ -1,6 +1,8 @@
 package me.lakitu.permissioncontrol
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -16,6 +18,19 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var systemSettingsController: SystemSettingsController
     private lateinit var accessibilityAppManager: AccessibilityAppManager
+
+    private var settingsAdapter: SettingsAdapter? = null
+    private var appsAdapter: AppsAdapter? = null
+
+    private val refreshHandler = Handler(Looper.getMainLooper())
+    @Suppress("NotifyDataSetChanged")
+    private val refreshRunnable = object : Runnable {
+        override fun run() {
+            settingsAdapter?.notifyDataSetChanged()
+            appsAdapter?.notifyDataSetChanged()
+            refreshHandler.postDelayed(this, 500)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +54,12 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updatePermissionStatus()
+        refreshHandler.post(refreshRunnable)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        refreshHandler.removeCallbacks(refreshRunnable)
     }
 
     private fun hasWriteSecureSettings(): Boolean {
@@ -102,7 +123,7 @@ class MainActivity : AppCompatActivity() {
         val recyclerView = dialogView.findViewById<RecyclerView>(R.id.recycler_settings)
         
         val settings = systemSettingsController.getAllSettings()
-        val adapter = SettingsAdapter(settings) { setting, enable ->
+        settingsAdapter = SettingsAdapter(settings) { setting, enable ->
             val result = setting.setValue(enable)
             val message = when (result) {
                 is SystemSettingsController.SettingResult.Success -> 
@@ -119,12 +140,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
+        recyclerView.adapter = settingsAdapter
 
         AlertDialog.Builder(this)
             .setTitle("系统设置")
             .setView(dialogView)
-            .setPositiveButton("关闭", null)
+            .setPositiveButton("关闭") { _, _ ->
+                settingsAdapter = null
+            }
             .show()
     }
 
@@ -133,7 +156,7 @@ class MainActivity : AppCompatActivity() {
         val recyclerView = dialogView.findViewById<RecyclerView>(R.id.recycler_apps)
         
         val apps = accessibilityAppManager.getAllAppsWithAccessibilityService()
-        val adapter = AppsAdapter(apps) { app, enable ->
+        appsAdapter = AppsAdapter(apps) { app, enable ->
             val result = accessibilityAppManager.setAppAccessibilityEnabled(app.packageName, enable)
             if (result) {
                 Toast.makeText(this, "${app.appName} 已${if (enable) "开启" else "关闭"}", Toast.LENGTH_SHORT).show()
@@ -143,12 +166,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
+        recyclerView.adapter = appsAdapter
 
         AlertDialog.Builder(this)
             .setTitle("应用无障碍权限")
             .setView(dialogView)
-            .setPositiveButton("关闭", null)
+            .setPositiveButton("关闭") { _, _ ->
+                appsAdapter = null
+            }
             .show()
     }
 

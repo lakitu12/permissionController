@@ -16,7 +16,7 @@ class AccessibilityAppManager(context: Context) {
         val appName: String,
         val serviceName: String,
         val icon: Drawable?,
-        val isAccessibilityEnabled: Boolean
+        val getIsAccessibilityEnabled: () -> Boolean
     )
 
     private fun getEnabledServicesSet(): Set<String> {
@@ -28,8 +28,6 @@ class AccessibilityAppManager(context: Context) {
     }
 
     fun getAllAppsWithAccessibilityService(): List<AppInfo> {
-        val enabledServices = getEnabledServicesSet()
-
         val resolveInfos = pm.queryIntentServices(
             android.content.Intent("android.accessibilityservice.AccessibilityService"),
             PackageManager.GET_SERVICES
@@ -49,15 +47,17 @@ class AccessibilityAppManager(context: Context) {
         return appServices.mapNotNull { (packageName, services) ->
             try {
                 val appInfo = pm.getApplicationInfo(packageName, 0)
-                val isEnabled = enabledServices.any { enabled ->
-                    enabled.startsWith("$packageName/")
-                }
                 AppInfo(
                     packageName = packageName,
                     appName = pm.getApplicationLabel(appInfo).toString(),
                     serviceName = services.first(),
                     icon = try { pm.getApplicationIcon(packageName) } catch (_: Exception) { null },
-                    isAccessibilityEnabled = isEnabled
+                    getIsAccessibilityEnabled = {
+                        val currentEnabled = getEnabledServicesSet()
+                        currentEnabled.any { enabled ->
+                            enabled.startsWith("$packageName/")
+                        }
+                    }
                 )
             } catch (_: Exception) {
                 null

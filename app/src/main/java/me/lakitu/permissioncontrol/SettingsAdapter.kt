@@ -3,6 +3,7 @@ package me.lakitu.permissioncontrol
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CompoundButton
 import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -31,12 +32,14 @@ class SettingsAdapter(
         holder.switch.setOnCheckedChangeListener(null)
         holder.switch.isChecked = setting.getValue() as Boolean
 
-        holder.switch.setOnCheckedChangeListener { _, isChecked ->
-            val result = onToggle(setting, isChecked)
-            if (result !is SystemSettingsController.SettingResult.Success) {
-                holder.switch.isChecked = !isChecked
-            }
+        lateinit var listener: CompoundButton.OnCheckedChangeListener
+        listener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
+            onToggle(setting, isChecked)
+            holder.switch.setOnCheckedChangeListener(null)
+            holder.switch.isChecked = setting.getValue() as Boolean
+            holder.switch.setOnCheckedChangeListener(listener)
         }
+        holder.switch.setOnCheckedChangeListener(listener)
     }
 
     override fun getItemCount(): Int = settings.size

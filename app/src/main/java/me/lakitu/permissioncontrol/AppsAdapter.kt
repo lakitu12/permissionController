@@ -3,9 +3,10 @@ package me.lakitu.permissioncontrol
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CompoundButton
 import android.widget.ImageView
-import android.widget.Switch
 import android.widget.TextView
+import androidx.appcompat.widget.SwitchCompat
 import androidx.recyclerview.widget.RecyclerView
 
 class AppsAdapter(
@@ -17,7 +18,7 @@ class AppsAdapter(
         val icon: ImageView = view.findViewById(R.id.iv_app_icon)
         val name: TextView = view.findViewById(R.id.tv_app_name)
         val packageName: TextView = view.findViewById(R.id.tv_package_name)
-        val switch: Switch = view.findViewById(R.id.switch_accessibility)
+        val switch: SwitchCompat = view.findViewById(R.id.switch_accessibility)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -32,11 +33,16 @@ class AppsAdapter(
         holder.packageName.text = app.packageName
         holder.icon.setImageDrawable(app.icon)
         holder.switch.setOnCheckedChangeListener(null)
-        holder.switch.isChecked = app.isAccessibilityEnabled
+        holder.switch.isChecked = app.getIsAccessibilityEnabled()
 
-        holder.switch.setOnCheckedChangeListener { _, isChecked ->
+        lateinit var listener: CompoundButton.OnCheckedChangeListener
+        listener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
             onToggle(app, isChecked)
+            holder.switch.setOnCheckedChangeListener(null)
+            holder.switch.isChecked = app.getIsAccessibilityEnabled()
+            holder.switch.setOnCheckedChangeListener(listener)
         }
+        holder.switch.setOnCheckedChangeListener(listener)
     }
 
     override fun getItemCount(): Int = apps.size
