@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "me.lakitu.permissioncontrol"
+    namespace = "me.lakitu.permissioncontroller"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -15,7 +15,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "me.lakitu.permissioncontrol"
+        applicationId = "me.lakitu.permissioncontroller"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
