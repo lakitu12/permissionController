@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">权限控制</string>
+    <string name="accessibility_service_description">用于管理无障碍权限的服务</string>
+</resources>
