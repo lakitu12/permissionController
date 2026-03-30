@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView
 import me.lakitu.permissioncontroller.databinding.ActivityMainBinding
 import android.content.ClipboardManager
 import android.content.ClipData
-import android.content.Context
 
 class MainActivity : AppCompatActivity() {
 
@@ -85,7 +84,7 @@ class MainActivity : AppCompatActivity() {
             if (hasWriteSecureSettings()) {
                 showSystemSettingsDialog()
             } else {
-                Toast.makeText(this, "请先授予WRITE_SECURE_SETTINGS权限", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.grant_permission_first, Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -93,17 +92,16 @@ class MainActivity : AppCompatActivity() {
             if (hasWriteSecureSettings()) {
                 showAppsAccessibilityDialog()
             } else {
-                Toast.makeText(this, "请先授予WRITE_SECURE_SETTINGS权限", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.grant_permission_first, Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun showSecureSettingsInfo() {
-        val message = "WRITE_SECURE_SETTINGS 权限已授予！"
         AlertDialog.Builder(this)
-            .setTitle("权限状态")
-            .setMessage(message)
-            .setPositiveButton("确定", null)
+            .setTitle(R.string.permission_status)
+            .setMessage(R.string.permission_granted_message)
+            .setPositiveButton(R.string.ok, null)
             .show()
     }
 
@@ -114,26 +112,23 @@ class MainActivity : AppCompatActivity() {
             请在电脑上执行：
             adb shell pm grant me.lakitu.permissioncontroller android.permission.WRITE_SECURE_SETTINGS
         """.trimIndent()
-        // 仅复制指令文本，不复制完整提示信息
         val copyText = "adb shell pm grant me.lakitu.permissioncontroller android.permission.WRITE_SECURE_SETTINGS"
 
         val dialogView = layoutInflater.inflate(R.layout.dialog_permission_message_copy, null)
         val tvMessage = dialogView.findViewById<TextView>(R.id.tv_message)
         tvMessage.text = message
-        // 允许文本选择复制（弹窗文本可长按复制）
         tvMessage.setTextIsSelectable(true)
 
         AlertDialog.Builder(this)
-            .setTitle("需要权限")
+            .setTitle(R.string.permission_required)
             .setView(dialogView)
-            .setPositiveButton("确定", null)
-            .setNeutralButton("复制") { _, _ ->
-                // 将指令文本复制到剪贴板（仅命令）
+            .setPositiveButton(R.string.ok, null)
+            .setNeutralButton(R.string.copy) { _, _ ->
                 @Suppress("UnnecessaryQualifiedReference")
-                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
                 val clip = ClipData.newPlainText("permission_grant_command", copyText)
                 clipboard.setPrimaryClip(clip)
-                Toast.makeText(this, "已复制到剪贴板", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
             }
             .show()
     }
@@ -147,13 +142,13 @@ class MainActivity : AppCompatActivity() {
             val result = setting.setValue(enable)
             val message = when (result) {
                 is SystemSettingsController.SettingResult.Success -> 
-                    "${setting.name} 已${if (result.enabled) "开启" else "关闭"}"
+                    getString(R.string.app_name) + " " + if (result.enabled) getString(R.string.enabled) else getString(R.string.disabled)
                 is SystemSettingsController.SettingResult.Error -> 
-                    "${setting.name} 设置失败: ${result.message}"
+                    "${setting.name} " + getString(R.string.setting_failed) + ": ${result.message}"
                 is SystemSettingsController.SettingResult.WifiDisabled -> 
-                    "请先开启WiFi"
+                    getString(R.string.enable_wifi_first)
                 is SystemSettingsController.SettingResult.WifiNotConnected -> 
-                    "请先连接WiFi网络"
+                    getString(R.string.connect_wifi_first)
             }
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             result
@@ -163,9 +158,9 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = settingsAdapter
         
         AlertDialog.Builder(this)
-            .setTitle("系统设置")
+            .setTitle(R.string.system_settings)
             .setView(dialogView)
-            .setPositiveButton("关闭") { _, _ ->
+            .setPositiveButton(R.string.close) { _, _ ->
                 settingsAdapter = null
             }
             .show()
@@ -179,9 +174,9 @@ class MainActivity : AppCompatActivity() {
         appsAdapter = AppsAdapter(apps) { app, enable ->
             val result = accessibilityAppManager.setAppAccessibilityEnabled(app.packageName, enable)
             if (result) {
-                Toast.makeText(this, "${app.appName} 已${if (enable) "开启" else "关闭"}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "${app.appName} ${if (enable) getString(R.string.enabled) else getString(R.string.disabled)}", Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this, "设置失败", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.setting_failed, Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -189,9 +184,9 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = appsAdapter
         
         AlertDialog.Builder(this)
-            .setTitle("应用无障碍权限")
+            .setTitle(R.string.app_accessibility)
             .setView(dialogView)
-            .setPositiveButton("关闭") { _, _ ->
+            .setPositiveButton(R.string.close) { _, _ ->
                 appsAdapter = null
             }
             .show()
@@ -207,7 +202,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateStatus(textView: TextView, enabled: Boolean) {
-        textView.text = if (enabled) "已授予" else "未授予"
+        textView.text = if (enabled) getString(R.string.granted) else getString(R.string.not_granted)
         textView.setTextColor(getColor(if (enabled) R.color.permission_granted else R.color.permission_denied))
     }
 }

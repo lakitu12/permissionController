@@ -1,4 +1,27 @@
 <resources>
     <string name="app_name">权限控制</string>
-    <string name="accessibility_service_description">用于管理无障碍权限的服务</string>
+    <string name="app_icon_description">应用图标</string>
+    <string name="permission_management">权限管理</string>
+    <string name="granted">已授予</string>
+    <string name="not_granted">未授予</string>
+    <string name="view">查看</string>
+    <string name="system_settings">系统设置</string>
+    <string name="usb_wireless_debug">USB调试、无线调试等</string>
+    <string name="settings">设置</string>
+    <string name="app_accessibility">应用无障碍权限</string>
+    <string name="toggle_accessibility">开关其他应用的无障碍权限</string>
+    <string name="manage">管理</string>
+    <string name="permission_status">权限状态</string>
+    <string name="permission_granted_message">WRITE_SECURE_SETTINGS 权限已授予！</string>
+    <string name="permission_required">需要权限</string>
+    <string name="ok">确定</string>
+    <string name="close">关闭</string>
+    <string name="copy">复制</string>
+    <string name="copied_to_clipboard">已复制到剪贴板</string>
+    <string name="grant_permission_first">请先授予WRITE_SECURE_SETTINGS权限</string>
+    <string name="enabled">开启</string>
+    <string name="disabled">关闭</string>
+    <string name="setting_failed">设置失败</string>
+    <string name="enable_wifi_first">请先开启WiFi</string>
+    <string name="connect_wifi_first">请先连接WiFi网络</string>
 </resources>
