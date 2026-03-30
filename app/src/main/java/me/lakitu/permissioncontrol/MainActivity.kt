@@ -111,10 +111,26 @@ class MainActivity : AppCompatActivity() {
             请在电脑上执行：
             adb shell pm grant me.lakitu.permissioncontrol android.permission.WRITE_SECURE_SETTINGS
         """.trimIndent()
-        AlertDialog.Builder(this)
+        // 仅复制指令文本，不复制完整提示信息
+        val copyText = "adb shell pm grant me.lakitu.permissioncontrol android.permission.WRITE_SECURE_SETTINGS"
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_permission_message_copy, null)
+        val tvMessage = dialogView.findViewById<TextView>(R.id.tv_message)
+        tvMessage.text = message
+        // 允许文本选择复制（弹窗文本可长按复制）
+        tvMessage.setTextIsSelectable(true)
+
+        val dialog = AlertDialog.Builder(this)
             .setTitle("需要权限")
-            .setMessage(message)
+            .setView(dialogView)
             .setPositiveButton("确定", null)
+            .setNeutralButton("复制") { _, _ ->
+                // 将指令文本复制到剪贴板（仅命令）
+                val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("permission_grant_command", copyText)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(this, "已复制到剪贴板", Toast.LENGTH_SHORT).show()
+            }
             .show()
     }
 
