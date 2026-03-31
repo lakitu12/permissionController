@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     @Suppress("NotifyDataSetChanged")
     private val refreshRunnable = object : Runnable {
         override fun run() {
+            updatePermissionStatus()
             settingsAdapter?.notifyDataSetChanged()
             appsAdapter?.notifyDataSetChanged()
             refreshHandler.postDelayed(this, 500)
@@ -56,7 +57,9 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updatePermissionStatus()
-        refreshHandler.post(refreshRunnable)
+        if (!hasWriteSecureSettings()) {
+            refreshHandler.post(refreshRunnable)
+        }
     }
 
     override fun onPause() {
@@ -106,13 +109,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showGrantSecureSettingsDialog() {
-        val message = """
-            需要 WRITE_SECURE_SETTINGS 权限。
-            
-            请在电脑上执行：
-            adb shell pm grant me.lakitu.permissioncontroller android.permission.WRITE_SECURE_SETTINGS
-        """.trimIndent()
         val copyText = "adb shell pm grant me.lakitu.permissioncontroller android.permission.WRITE_SECURE_SETTINGS"
+        val message = getString(R.string.grant_permission_message) + "\n\n" +
+                getString(R.string.grant_permission_instruction) + "\n" +
+                copyText
 
         val dialogView = layoutInflater.inflate(R.layout.dialog_permission_message_copy, null)
         val tvMessage = dialogView.findViewById<TextView>(R.id.tv_message)

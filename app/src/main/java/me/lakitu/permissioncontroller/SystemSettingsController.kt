@@ -126,16 +126,16 @@ class SystemSettingsController(private val context: Context) {
     fun getAllSettings(): List<SettingItem> {
         return listOf(
             SettingItem(
-                name = "USB调试",
+                name = context.getString(R.string.usb_debugging),
                 key = "adb_enabled",
                 getValue = { isUsbDebuggingEnabled() },
                 setValue = {
                     val result = setUsbDebuggingEnabled(it)
-                    if (result) SettingResult.Success(it) else SettingResult.Error("设置失败")
+                    if (result) SettingResult.Success(it) else SettingResult.Error(context.getString(R.string.setting_failed))
                 }
             ),
             SettingItem(
-                name = "无线调试",
+                name = context.getString(R.string.wireless_debugging),
                 key = "adb_wifi_enabled",
                 getValue = { isWirelessDebuggingEnabled() },
                 setValue = {
@@ -148,12 +148,12 @@ class SystemSettingsController(private val context: Context) {
                 }
             ),
             SettingItem(
-                name = "开发者模式",
+                name = context.getString(R.string.developer_mode),
                 key = "development_settings_enabled",
                 getValue = { isDevelopmentSettingsEnabled() },
                 setValue = {
                     val result = setDevelopmentSettingsEnabled(it)
-                    if (result) SettingResult.Success(it) else SettingResult.Error("设置失败")
+                    if (result) SettingResult.Success(it) else SettingResult.Error(context.getString(R.string.setting_failed))
                 }
             )
         )
